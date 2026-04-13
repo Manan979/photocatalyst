@@ -15,7 +15,7 @@ if st.button("Predict Property", type="primary"):
     with st.spinner("Querying XGBoost model on GCP..."):
         try:
             # REPLACE THIS URL with your live Cloud Run link
-            api_url = f"https://YOUR-GCP-SERVICE-URL.a.run.app/predict?formula={formula}"
+            api_url = f"https://bandgap-1007710367480.asia-south2.run.app/docs"
             
             response = requests.get(api_url)
             
