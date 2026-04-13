@@ -41,25 +41,30 @@ for col in df_elements.columns[1:]:
 @app.get("/predict")
 def predict(formula: str):
     try:
-        # Step A: Generate features from formula string
+        # 1. Get the raw features
         input_df = get_single_feature_vector(formula, df_elements)
 
-        # Step B: Clean the newly generated columns to match model training names
-        input_df = clean_column_names(input_df)
+        # 2. THE HAMMER: Force column names to match the model's training names
+        # This bypasses all encoding issues (Å, Ã…, etc.)
+        model_features = model.get_booster().feature_names
+        
+        if len(input_df.columns) == len(model_features):
+            input_df.columns = model_features
+        else:
+            # If the count is different, we have a bigger featurizer issue
+            raise Exception(f"Feature count mismatch. Model needs {len(model_features)}, got {len(input_df.columns)}")
 
-        # Step C: Run Inference
+        # 3. Predict
         prediction = model.predict(input_df)[0]
 
         return {
             "status": "success",
             "input_formula": formula,
             "prediction": {
-                "band_gap_ev": round(float(prediction), 4),
-                "type": "Metal/Semiconductor/Insulator Check Pending"
+                "band_gap_ev": round(float(prediction), 4)
             }
         }
     except Exception as e:
-        # If anything fails (missing element, etc.), return a 400 error
         raise HTTPException(status_code=400, detail=str(e))
 
 # For direct local testing
